@@ -1,6 +1,6 @@
 package com.my.jasuil.data.repository;
 
-import com.my.jasuil.data.Product;
+import com.my.jasuil.data.entities.Product;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
 

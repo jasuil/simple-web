@@ -1,4 +1,4 @@
-package com.my.jasuil.data;
+package com.my.jasuil.data.entities;
 
 import javax.persistence.*;
 

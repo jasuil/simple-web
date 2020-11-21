@@ -1,5 +1,6 @@
 package com.my.jasuil.data;
 
+import com.my.jasuil.data.entities.Product;
 import com.my.jasuil.data.repository.ProductRepository;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
