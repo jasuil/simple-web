@@ -1,11 +1,13 @@
 package com.my.jasuil.data.entities;
 
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
+import lombok.Data;
 
+import javax.persistence.*;
+import java.time.LocalDateTime;
+
+@Data
 @Entity
+@Table(uniqueConstraints = @UniqueConstraint(columnNames = { "email" }))
 public class UserInfo {
     @Id
     @GeneratedValue(strategy= GenerationType.AUTO)
@@ -13,4 +15,6 @@ public class UserInfo {
     private String name;
     private String password;
     private String email;
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
 }

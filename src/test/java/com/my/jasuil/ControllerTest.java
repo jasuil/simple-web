@@ -25,7 +25,7 @@ public class ControllerTest {
     @Test
     public void hiTest() throws Exception {
         HttpHeaders headers = new HttpHeaders();
-        headers.add("Cookie", "tv=samsung;app_auth=jasuil;phone=samsung;" );
+        headers.add("Cookie", "user-email=jasuil@daum.net;user-password=1212;" );
         ResponseEntity<String> result = this.restTemplate.exchange("http://localhost:" + port + "/hi?idList=1,4",
                 HttpMethod.GET,
                 new HttpEntity<String>(headers),
