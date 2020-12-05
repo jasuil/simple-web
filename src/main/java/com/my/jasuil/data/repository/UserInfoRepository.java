@@ -9,5 +9,6 @@ import org.springframework.stereotype.Repository;
 public interface UserInfoRepository extends CrudRepository<UserInfo, Integer> {
     UserInfo findAllByEmailAndPassword(String email, String password);
     UserInfo findByEmail(String email);
+    UserInfo findBySessionId(String sessionId);
     void deleteByEmail(String email);
 }

@@ -15,6 +15,7 @@ public class UserInfo {
     private String name;
     private String password;
     private String email;
+    private String sessionId;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 }

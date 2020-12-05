@@ -1,18 +1,16 @@
 package com.my.jasuil.config;
 
+import com.my.jasuil.data.entities.UserInfo;
 import com.my.jasuil.data.repository.UserInfoRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import org.springframework.util.StringUtils;
 import org.springframework.web.servlet.HandlerInterceptor;
 import org.springframework.web.servlet.ModelAndView;
 
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Component
@@ -24,63 +22,69 @@ public class BasicInterceptor implements HandlerInterceptor {
     public boolean preHandle(
             HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
 
-        List<Cookie> cookieList = Arrays.stream(request.getCookies()).collect(Collectors.toList());
-//        response.setHeader("Access-Control-Allow-Origin", "http://localhost:3000");
-//        response.setHeader("Access-Control-Allow-Credentials", "true");
-//        response.setHeader("Access-Control-Allow-Methods", "GET,HEAD,OPTIONS,POST,PUT");
-//        response.setHeader("Access-Control-Allow-Headers",
-//                "Access-Control-Allow-Headers, Origin,Accept, X-Requested-With, Content-Type, Access-Control-Request-Method, Access-Control-Request-Headers, user-email, user-password");
 
-        String emailCookie = null;
-        String passwordCookie = null;
-        for(Cookie cookie : cookieList) {
-            if(cookie.getName().equals("user-email")) {
-                emailCookie = cookie.getValue();
-            } else if(cookie.getName().equals("user-password")) {
-                passwordCookie = cookie.getValue();
-            }
-        }
+        List<Cookie> cookieList = Arrays.stream(Optional.ofNullable(request.getCookies()).orElse(new Cookie[]{})).collect(Collectors.toList());
+        String userSessionCookie = getSessionCookie(cookieList);
 
-        String email = emailCookie == null ? request.getHeader("user-email") : emailCookie;
-        String password = passwordCookie == null ? request.getHeader("user-password") : passwordCookie;
+        String email = request.getHeader("user-email");
+        String password = request.getHeader("user-password");
         List<String> allowList = new ArrayList<>();
         allowList.add("userinfo");
 
-        if(request.getMethod() != null && request.getMethod().equals("OPTIONS")) {
+        if (request.getMethod() != null && request.getMethod().equals("OPTIONS")) {
             return true;
         }
 
-        if(email != null && password != null) {
-            if(userInfoRepository.findAllByEmailAndPassword(email, password) != null) {
+        UserInfo userInfo = getUserInfo(email, password, userSessionCookie);
 
-                Cookie cookie = new Cookie("user-email", email);
-                if(emailCookie == null) {
-                    cookie.setMaxAge(60 * 60 * 24);
-                    response.addCookie(cookie);
-                }
-
-                if(passwordCookie == null) {
-                    cookie = new Cookie("user-password", password);
-                    cookie.setMaxAge(60 * 60 * 24);
-                    response.addCookie(cookie);
-                }
-                return true;
+        if (userInfo != null) {
+            if (userSessionCookie == null) {
+                UUID uuid = UUID.randomUUID();
+                userInfo.setSessionId(uuid.toString());
+                setCookie(response, "user-session-id", uuid.toString());
             }
+            return true;
         }
 
-        if(allowList.contains(request.getRequestURL().toString().split("\\/")[3])) return true;
+        if (allowList.contains(request.getRequestURL().toString().split("\\/")[3])) return true;
         response.setStatus(400);
         response.setHeader("auth", "required");
         return false;
     }
+
     @Override
     public void postHandle(
             HttpServletRequest request, HttpServletResponse response, Object handler,
-            ModelAndView modelAndView) throws Exception {}
+            ModelAndView modelAndView) throws Exception {
+    }
 
     @Override
     public void afterCompletion(HttpServletRequest request, HttpServletResponse response,
                                 Object handler, Exception exception) throws Exception {
 
+    }
+
+    private String getSessionCookie(List<Cookie> cookieList) {
+        for (Cookie cookie : cookieList) {
+            if (cookie.getName().equals("user-session-id")) {
+                return cookie.getValue();
+            }
+        }
+        return null;
+    }
+
+    private UserInfo getUserInfo(String email, String password, String userSessionCookie) {
+        if (email != null && password != null) {
+            return userInfoRepository.findAllByEmailAndPassword(email, password);
+        } else if (userSessionCookie != null) {
+            return userInfoRepository.findBySessionId(userSessionCookie);
+        }
+        return null;
+    }
+
+    private void setCookie(HttpServletResponse response, String key, String value) {
+        Cookie cookie = new Cookie(key, value);
+        cookie.setMaxAge(60 * 60 * 24);
+        response.addCookie(cookie);
     }
 }
