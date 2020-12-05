@@ -34,3 +34,4 @@ build/
 
 ### database ###
 h2_data.mv.db
+h2_data.trace.db
